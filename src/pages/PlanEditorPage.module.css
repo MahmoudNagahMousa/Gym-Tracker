@@ -79,3 +79,10 @@
   background: rgba(56, 189, 248, 0.06);
   padding: 12px;
 }
+
+.warningText {
+  color: #fde68a;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.8;
+}

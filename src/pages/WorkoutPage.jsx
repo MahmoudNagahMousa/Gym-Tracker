@@ -8,6 +8,10 @@ import {
   buildLastPerformanceMap,
   computeSessionVolume,
   createEmptySets,
+  getDayLabel,
+  getDayName,
+  getLastPerformance,
+  groupExercises,
   makeLogKey,
 } from '../utils/workout.js'
 import ui from '../styles/ui.module.css'
@@ -21,13 +25,17 @@ export default function WorkoutPage() {
 
   const dateKey = toISODate(new Date())
   const day = plan.days[selectedDayIndex] ?? plan.days[0]
+  const dayLabel = getDayLabel(selectedDayIndex)
   const logKey = makeLogKey(dateKey, selectedDayIndex)
   const log = activeLogs[logKey]
 
+  const exercises = useMemo(() => (Array.isArray(day?.exercises) ? day.exercises : []), [day])
+  const groups = useMemo(() => groupExercises(exercises), [exercises])
+
   // نجهّز log فاضي لليوم المختار أول ما نفتح الصفحة
   useEffect(() => {
-    if (day?.exercises?.length) actions.initLog(logKey, day.exercises)
-  }, [actions, logKey, day])
+    if (exercises.length) actions.initLog(logKey, exercises)
+  }, [actions, logKey, exercises])
 
   const lastPerformance = useMemo(() => buildLastPerformanceMap(sessions), [sessions])
   const recentSessions = useMemo(() => (Array.isArray(sessions) ? sessions.slice(0, 5) : []), [sessions])
@@ -43,22 +51,22 @@ export default function WorkoutPage() {
     const session = actions.finishWorkout(logKey, {
       date: dateKey,
       dayIndex: selectedDayIndex,
-      dayLabel: day.label,
-      dayName: day.name,
+      dayLabel,
+      dayName: getDayName(day),
     })
     if (!session) {
       setFeedback({ type: 'error', message: 'سجّل مجموعة واحدة على الأقل (وزن أو عدّ أو علم «تم») قبل ما تخلّص.' })
       return
     }
     setFeedback({ type: 'success', message: 'تم حفظ التمرين في السجل ✅' })
-    actions.initLog(logKey, day.exercises)
+    actions.initLog(logKey, exercises)
   }
 
   return (
     <div className={ui.page}>
       <PageHeader
         title="تمرين النهارده"
-        subtitle={`${WEEK_DAYS[todayIndex].label} — ${plan.days[todayIndex]?.name ?? 'راحة'}. الأوزان اللي سجلتها آخر مرة ظاهرة كتلميح على كل تمرين.`}
+        subtitle={`${getDayLabel(todayIndex)} — ${getDayName(plan.days[todayIndex])}. الأوزان اللي سجلتها آخر مرة ظاهرة كتلميح على كل تمرين.`}
       >
         <div className={styles.topActions}>
           <Link className={ui.btn} to="/plan">
@@ -94,7 +102,7 @@ export default function WorkoutPage() {
                 aria-pressed={isActive}
               >
                 <span>{weekDay.short}</span>
-                <span className={styles.dayChipName}>{plan.days[weekDay.index]?.name ?? 'راحة'}</span>
+                <span className={styles.dayChipName}>{getDayName(plan.days[weekDay.index])}</span>
               </button>
             )
           })}
@@ -105,27 +113,34 @@ export default function WorkoutPage() {
       <section className={ui.card} aria-labelledby="today-workout-title">
         <div className={ui.cardHead}>
           <h2 className={ui.cardTitle} id="today-workout-title">
-            {day.label} — {day.name}
+            {dayLabel} — {getDayName(day)}
           </h2>
           <span className={[ui.badge, selectedDayIndex === todayIndex ? ui.badgeOk : ui.badgeMuted].join(' ')}>
             {selectedDayIndex === todayIndex ? 'النهارده' : 'يوم تاني'}
           </span>
         </div>
 
-        {day.exercises.length === 0 ? (
+        {day?.focus ? <p className={styles.focusLine}>🎯 {day.focus}</p> : null}
+
+        {exercises.length === 0 ? (
           <p className={ui.empty}>يوم راحة 😴 — ارتاح كويس، العضلات بتكبر في الراحة.</p>
         ) : (
-          <ul className={styles.exerciseList} aria-label={`تمارين ${day.label}`}>
-            {day.exercises.map((exercise) => (
-              <ExerciseCard
-                key={exercise.id}
-                exercise={exercise}
-                sets={getSets(exercise)}
-                lastPerformance={lastPerformance[exercise.name]}
-                onSetChange={(setIndex, patch) => handleSetChange(exercise.id, setIndex, patch)}
-              />
-            ))}
-          </ul>
+          groups.map((group) => (
+            <section key={group.key} aria-label={group.title ? `تمارين ${group.title}` : `تمارين ${dayLabel}`}>
+              {group.title ? <h3 className={styles.groupTitle}>{group.title}</h3> : null}
+              <ul className={styles.exerciseList}>
+                {group.exercises.map((exercise) => (
+                  <ExerciseCard
+                    key={exercise.id}
+                    exercise={exercise}
+                    sets={getSets(exercise)}
+                    lastPerformance={getLastPerformance(lastPerformance, exercise)}
+                    onSetChange={(setIndex, patch) => handleSetChange(exercise.id, setIndex, patch)}
+                  />
+                ))}
+              </ul>
+            </section>
+          ))
         )}
 
         <div className={styles.finishBar}>
@@ -133,7 +148,7 @@ export default function WorkoutPage() {
             type="button"
             className={[ui.btn, ui.btnPrimary, ui.btnBlock].join(' ')}
             onClick={handleFinish}
-            disabled={day.exercises.length === 0}
+            disabled={exercises.length === 0}
           >
             خلّصت التمرين — احفظه
           </button>
@@ -165,12 +180,15 @@ export default function WorkoutPage() {
             {recentSessions.map((session) => (
               <li key={session.id} className={styles.historyItem}>
                 <div className={styles.historyHead}>
-                  <span>{session.dayLabel ? `${session.dayLabel} — ${session.dayName}` : session.dayName}</span>
+                  <span>
+                    {session.dayLabel ? `${session.dayLabel} — ${session.dayName}` : session.dayName || 'تمرين'}
+                  </span>
                   <span className="numeric">{Math.round(computeSessionVolume(session))} كجم</span>
                 </div>
                 <div className={styles.historyMeta}>
-                  {formatDateAr(session.date)} • {session.exercises.length} تمرين •{' '}
-                  {session.exercises.reduce((total, exercise) => total + (exercise.sets?.length ?? 0), 0)} مجموعة
+                  {formatDateAr(session.date)} • {(session.exercises ?? []).length} تمرين •{' '}
+                  {(session.exercises ?? []).reduce((total, exercise) => total + (exercise.sets?.length ?? 0), 0)}{' '}
+                  مجموعة
                 </div>
               </li>
             ))}

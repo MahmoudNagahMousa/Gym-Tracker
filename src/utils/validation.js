@@ -52,22 +52,39 @@ export function validateProfile(values = {}) {
 }
 
 export function hasErrors(errors) {
-  return Object.keys(errors ?? {}).length > 0
+  return Object.keys(errors ?? {}).some((key) => Boolean(errors[key]))
 }
 
-/** تحقق من تمرين في محرر الخطة */
+/**
+ * تحقق من تمرين في محرر الخطة (شكل الفورم: قيم نصية).
+ * @returns {Object} أخطاء لكل حقل
+ */
 export function validateExercise(values = {}) {
   const errors = {}
+
   const name = String(values.name ?? '').trim()
   if (name.length < 2) errors.name = 'اكتب اسم التمرين'
 
   const sets = Number(values.sets)
-  if (!Number.isFinite(sets) || sets < 1 || sets > 20) errors.sets = 'عدد المجموعات من 1 إلى 20'
+  if (!Number.isInteger(sets) || sets < 1 || sets > 20) {
+    errors.sets = 'عدد المجموعات من 1 إلى 20'
+  }
 
   const type = values.type === 'timed' ? 'timed' : 'reps'
+
   if (type === 'reps') {
-    const reps = Number(values.reps)
-    if (!Number.isFinite(reps) || reps < 1 || reps > 100) errors.reps = 'التكرارات من 1 إلى 100'
+    const repsMin = Number(values.repsMin)
+    const repsMax = Number(values.repsMax)
+
+    if (!Number.isInteger(repsMin) || repsMin < 1 || repsMin > 100) {
+      errors.repsMin = 'أقل تكرارات من 1 إلى 100'
+    }
+    if (!Number.isInteger(repsMax) || repsMax < 1 || repsMax > 100) {
+      errors.repsMax = 'أكبر تكرارات من 1 إلى 100'
+    }
+    if (!errors.repsMin && !errors.repsMax && repsMin > repsMax) {
+      errors.repsMax = 'أكبر تكرارات لازم تكون أكبر من أو تساوي أقل تكرارات'
+    }
   } else {
     const duration = Number(values.durationSec)
     if (!Number.isFinite(duration) || duration < 5 || duration > 3600) {
@@ -76,7 +93,15 @@ export function validateExercise(values = {}) {
   }
 
   const rest = Number(values.restSec)
-  if (!Number.isFinite(rest) || rest < 0 || rest > 900) errors.restSec = 'الراحة من 0 إلى 900 ثانية'
+  if (!Number.isFinite(rest) || rest < 0 || rest > 900) {
+    errors.restSec = 'الراحة من 0 إلى 900 ثانية'
+  }
+
+  const group = String(values.group ?? '').trim()
+  if (group.length > 40) errors.group = 'اسم المجموعة طويل (40 حرف كحد أقصى)'
+
+  const note = String(values.note ?? '').trim()
+  if (note.length > 120) errors.note = 'الملاحظة طويلة (120 حرف كحد أقصى)'
 
   return errors
 }

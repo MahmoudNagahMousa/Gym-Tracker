@@ -12,7 +12,7 @@
 | الصفحة | اللي بتعمله |
 | --- | --- |
 | **بياناتي** | الاسم/العمر/الوزن/الطول، بداية الاشتراك ومدته، حساب تلقائي لتاريخ الانتهاء والأيام المتبقية و **BMI** مع التصنيف، هيستوري الوزن مع رسم خطي، تفعيل تنبيهات التجديد |
-| **تمرين النهارده** | خطة أسبوعية (السبت → الجمعة) جاهزة افتراضياً (Push / Pull / Legs + راحة)، بيفتح على يوم النهارده تلقائياً، تبديل بين الأيام، تسجيل وزن/عدّ لكل مجموعة + علامة «تم»، تلميح **آخر وزن من الجلسة السابقة**، إنهاء التمرين وحفظه في السجل |
+| **تمرين النهارده** | خطة أسبوعية (السبت → الجمعة) بتحمّل من ملف JSON (Push A / Pull A / راحة / Push B / Pull B / Leg + بطن وكور / راحة)، بيفتح على يوم النهارده تلقائياً، تبديل بين الأيام، عناوين مجموعات (رجل / بطن وكور)، مدى تكرارات `4 × 8–10` وتمارين بالوقت `3 × 45 ث` وشارة «لكل جنب»، تسجيل وزن/عدّ لكل مجموعة + علامة «تم»، تلميح **آخر وزن من الجلسة السابقة (بالـ id)**، إنهاء التمرين وحفظه في السجل |
 | **المؤقت** | مؤقت تمرين ومؤقت راحة، أوقات سريعة (30/45/60/90/120 ث) + مدة مخصصة `mm:ss`، عدّاد دائري كبير، اهتزاز + صفارة + فلاش عند النهاية، **Screen Wake Lock** |
 | **محرر الخطة** | إضافة/تعديل/حذف/ترتيب التمارين لكل يوم، تحديد نوع التمرين (تكرارات أو بالوقت) وعدد المجموعات والراحة |
 
@@ -25,6 +25,7 @@
 ## 🧱 التقنيات
 
 - **React 18** + **Vite 5** (JavaScript، بدون TypeScript)
+- **خطة التمرين في JSON** (`src/data/defaultPlan.json`) بتتـimport وتتحقق بـ `validatePlan` — مفيش `fetch` خالص، فبتشتغل أوفلاين
 - **react-router-dom** مع **HashRouter** (عشان الـ refresh على GitHub Pages مايرجعش 404)
 - **CSS Modules** + ملف Global للثيم والمتغيرات
 - **Vitest** + **React Testing Library** + **jsdom**
@@ -45,13 +46,14 @@ Gym-Tracker/
 ├─ src/
 │  ├─ components/                  # Layout, BottomNav, RenewalBanner, ExerciseCard, WeightChart...
 │  ├─ context/AppContext.jsx       # الحالة العامة + الحفظ في localStorage
-│  ├─ data/defaultPlan.js          # الخطة الافتراضية + normalizePlan
+│  ├─ data/defaultPlan.json        # الخطة الافتراضية (JSON) — المصدر الوحيد للديفولت
+│  ├─ data/defaultPlan.js          # loader: import للـ JSON + تحقق + createDefaultPlan/createExercise
 │  ├─ hooks/                       # useCountdown, useWakeLock, useRenewalReminder
 │  ├─ pages/                       # Profile, Workout, Timer, PlanEditor
-│  ├─ storage/                     # wrapper آمن + مفاتيح متversionة
+│  ├─ storage/                     # wrapper آمن + planStorage (load/migrate/save/restore) + مفاتيح متversionة
 │  ├─ styles/                      # global.css + ui.module.css
 │  ├─ test/                        # setup.js + utils.jsx
-│  └─ utils/                       # date, bmi, time, subscription, workout, validation, feedback
+│  └─ utils/                       # date, bmi, time, subscription, workout, validation, planSchema, feedback
 ├─ index.html
 ├─ vite.config.js                  # base + PWA + vitest
 └─ package.json
@@ -85,16 +87,37 @@ npm run icons          # إعادة توليد أيقونات PWA
 | --- | --- |
 | `src/utils/date.test.js` | تاريخ الانتهاء + الأيام المتبقية، **overflow الشهور** (31 يناير + شهر = 28/29 فبراير)، تحويل أيام الأسبوع للخطة |
 | `src/utils/bmi.test.js` | حساب BMI والتصنيف + القيم غير الصالحة |
+| `src/utils/planSchema.test.js` | `validatePlan` (نسخة، 7 أيام، repsMin > repsMax، timed بدون durationSec، ids مكررة/غير slug) + `migrateLegacyPlan` |
+| `src/data/defaultPlan.test.js` | الـ JSON المضمّن سليم + ترتيب الأيام الحقيقي + مجموعات الخميس + البلانك/Pallof Press + صياغة المدى |
 | `src/storage/storage.test.js` | **JSON تالف**، fallback، مفاتيح متversionة، `clearAppStorage` |
+| `src/storage/planStorage.test.js` | migration من الشكل القديم بدون لمس البروفايل/الجلسات/الوزن + استبدال الخطة التالفة + `restoreDefaultPlan` |
 | `src/hooks/useCountdown.test.jsx` | start / pause / resume / finish / reset بـ fake timers |
 | `src/components/RenewalBanner.test.jsx` | أصفر عند ≤ 5 أيام، أحمر عند الانتهاء، زر «تم التجديد» |
 | `src/pages/ProfilePage.test.jsx` | رسائل التحقق العربية + الحفظ + BMI + الهيستوري |
-| `src/pages/WorkoutPage.test.jsx` | تمارين اليوم الصحيح + تسجيل مجموعة + إنهاء التمرين + تلميح آخر وزن |
+| `src/pages/WorkoutPage.test.jsx` | تمارين كل يوم، صياغة المدى `4 × 8–10`، البلانك `3 × 45 ث` + زرار المؤقت، شارة «لكل جنب»، عناوين مجموعات الخميس، يوم الراحة، تسجيل/إنهاء مجموعة، تلميح آخر وزن بالـ id، جلسة قديمة بتمرين محذوف |
 | `src/pages/TimerPage.test.jsx` | الأوقات السريعة، المدة من الـ URL، العد/الإيقاف/الاستكمال/النهاية + اهتزاز، تحقق mm:ss |
-| `src/pages/PlanEditorPage.test.jsx` | إضافة/تعديل/ترتيب/حذف التمارين + استعادة الخطة الافتراضية |
+| `src/pages/PlanEditorPage.test.jsx` | إضافة (مدى + مجموعة + ملاحظة + لكل جنب)، التحقق من min <= max، تعديل/ترتيب/حذف + استعادة الافتراضي من JSON |
 | `src/App.test.jsx` | التنقل بين الصفحات الثلاث + البانر في كل الصفحات |
 
-العدد الحالي: **10 ملفات اختبار / 74 اختبار — كلهم ناجحين** ✅
+العدد الحالي: **13 ملف اختبار / 112 اختبار — كلهم ناجحين** ✅
+
+## 🗂️ شكل الخطة (Plan model)
+
+```jsonc
+{ "version": 1,
+  "days": [
+    { "weekday": "saturday", "index": 0, "name": "Push A", "focus": "صدر علوي + كتف", "isRest": false,
+      "exercises": [
+        { "id": "incline-dumbbell-press", "name": "Incline Dumbbell Press", "type": "reps",
+          "sets": 4, "repsMin": 8, "repsMax": 10, "restSec": 120, "perSide": false,
+          "group": "اختياري", "note": "اختياري" }
+      ] } ] }
+```
+
+- `type: "timed"` بيستخدم `durationSec` بدل `repsMin/repsMax`.
+- الـ `id` لازم يكون **slug** وفريد على مستوى الخطة — الهينت («آخر مرة») بيتطابق بالـ `id` الأول ثم بالاسم.
+- الخطة بتتحقق بـ `validatePlan` قبل أي حفظ؛ خطة غير صالحة **مش بتتحفظ** وبتظهر رسالة عربية في محرر الخطة.
+- **Migration**: مفتاح الخطة اتغيّر لـ `gym-tracker:v1:plan:v2`. لو فيه خطة بالشكل القديم في `gym-tracker:v1:plan` بتتحول تلقائياً (reps → min=max) وبتتشال؛ ولو التحويل فشل بترجع الخطة الافتراضية. البروفايل والجلسات وسجل الوزن **عمرهم ما بيتلمسوا**.
 
 ## 🌐 النشر على GitHub Pages
 

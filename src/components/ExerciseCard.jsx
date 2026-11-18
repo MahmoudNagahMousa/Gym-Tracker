@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom'
 import { formatClock, formatSecondsAr } from '../utils/time.js'
+import { formatRepsRange } from '../utils/workout.js'
 import ui from '../styles/ui.module.css'
 import styles from './ExerciseCard.module.css'
 
 /**
  * كارت تمرين واحد داخل صفحة تمرين النهارده.
+ * بيدعم: مدى تكرارات (4 × 8–10)، تمارين بالوقت (3 × 45 ث)، لكل جنب، وملاحظة.
  */
 export default function ExerciseCard({ exercise, sets = [], lastPerformance, onSetChange }) {
   const isTimed = exercise.type === 'timed'
@@ -14,23 +16,29 @@ export default function ExerciseCard({ exercise, sets = [], lastPerformance, onS
     <li className={ui.card} data-testid={`exercise-${exercise.id}`}>
       <div className={styles.head}>
         <div className={styles.headText}>
-          <h3 className={styles.name}>{exercise.name}</h3>
+          <h4 className={styles.name}>{exercise.name}</h4>
+          {exercise.note ? <p className={styles.note}>{exercise.note}</p> : null}
           <p className={styles.meta}>
-            {exercise.sets} مجموعات •{' '}
-            {isTimed ? formatSecondsAr(exercise.durationSec) : `${exercise.reps} تكرار`} • راحة{' '}
-            {formatSecondsAr(exercise.restSec)}
+            {formatRepsRange(exercise)} • راحة {formatSecondsAr(exercise.restSec)}
           </p>
         </div>
-        {lastPerformance ? (
-          <span className={[ui.badge, ui.badgeOk].join(' ')}>آخر مرة: {lastPerformance.weight} كجم</span>
-        ) : (
-          <span className={[ui.badge, ui.badgeMuted].join(' ')}>أول مرة</span>
-        )}
+
+        <div className={styles.badges}>
+          {exercise.perSide ? <span className={[ui.badge, ui.badgeWarn].join(' ')}>لكل جنب</span> : null}
+          {lastPerformance ? (
+            <span className={[ui.badge, ui.badgeOk].join(' ')}>آخر مرة: {lastPerformance.weight} كجم</span>
+          ) : (
+            <span className={[ui.badge, ui.badgeMuted].join(' ')}>أول مرة</span>
+          )}
+        </div>
       </div>
 
       <ul className={styles.sets}>
         {setRows.map((set, index) => (
-          <li key={`${exercise.id}-set-${index}`} className={[styles.setRow, isTimed ? styles.setRowTimed : ''].join(' ')}>
+          <li
+            key={`${exercise.id}-set-${index}`}
+            className={[styles.setRow, isTimed ? styles.setRowTimed : ''].join(' ')}
+          >
             <span className={styles.setNo} aria-hidden="true">
               {index + 1}
             </span>

@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "days": [
+    {
+      "weekday": "saturday", "index": 0, "name": "Push A", "focus": "صدر علوي + كتف", "isRest": false,
+      "exercises": [
+        { "id": "incline-dumbbell-press", "name": "Incline Dumbbell Press", "type": "reps", "sets": 4, "repsMin": 8, "repsMax": 10, "restSec": 120 },
+        { "id": "standing-barbell-overhead-press", "name": "Standing Barbell Overhead Press", "type": "reps", "sets": 4, "repsMin": 6, "repsMax": 8, "restSec": 150 },
+        { "id": "dumbbell-lateral-raise", "name": "Dumbbell Lateral Raise", "type": "reps", "sets": 4, "repsMin": 12, "repsMax": 15, "restSec": 60 },
+        { "id": "flat-barbell-bench-press", "name": "Flat Barbell Bench Press", "type": "reps", "sets": 3, "repsMin": 8, "repsMax": 10, "restSec": 120 },
+        { "id": "dips", "name": "Dips", "type": "reps", "sets": 3, "repsMin": 8, "repsMax": 12, "restSec": 90, "note": "ميّل جسمك لقدام" },
+        { "id": "triceps-rope-pushdown", "name": "Triceps Rope Pushdown", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 60 }
+      ]
+    },
+    {
+      "weekday": "sunday", "index": 1, "name": "Pull A", "focus": "عرض", "isRest": false,
+      "exercises": [
+        { "id": "wide-pull-ups", "name": "Wide Pull-ups", "type": "reps", "sets": 4, "repsMin": 6, "repsMax": 10, "restSec": 120, "note": "بوزن لو قدرت" },
+        { "id": "wide-lat-pulldown", "name": "Wide Lat Pulldown", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 90 },
+        { "id": "chest-supported-row", "name": "Chest-Supported Row", "type": "reps", "sets": 3, "repsMin": 8, "repsMax": 10, "restSec": 90 },
+        { "id": "straight-arm-pulldown", "name": "Straight-Arm Pulldown", "type": "reps", "sets": 3, "repsMin": 12, "repsMax": 15, "restSec": 60 },
+        { "id": "face-pull", "name": "Face Pull", "type": "reps", "sets": 3, "repsMin": 15, "repsMax": 15, "restSec": 60 },
+        { "id": "ez-bar-curl", "name": "EZ Bar Curl", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 60 }
+      ]
+    },
+    { "weekday": "monday", "index": 2, "name": "راحة", "focus": "", "isRest": true, "exercises": [] },
+    {
+      "weekday": "tuesday", "index": 3, "name": "Push B", "focus": "", "isRest": false,
+      "exercises": [
+        { "id": "machine-incline-press", "name": "Machine Incline Press", "type": "reps", "sets": 4, "repsMin": 8, "repsMax": 10, "restSec": 120 },
+        { "id": "arnold-press", "name": "Arnold Press", "type": "reps", "sets": 3, "repsMin": 8, "repsMax": 10, "restSec": 90 },
+        { "id": "cable-lateral-raise", "name": "Cable Lateral Raise", "type": "reps", "sets": 4, "repsMin": 12, "repsMax": 15, "restSec": 60, "perSide": true, "note": "إيد واحدة" },
+        { "id": "pec-deck-or-cable-fly", "name": "Pec Deck or Cable Fly", "type": "reps", "sets": 3, "repsMin": 12, "repsMax": 15, "restSec": 60 },
+        { "id": "overhead-cable-triceps-extension", "name": "Overhead Cable Triceps Extension", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 60 },
+        { "id": "skull-crushers", "name": "Skull Crushers", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 10, "restSec": 75 }
+      ]
+    },
+    {
+      "weekday": "wednesday", "index": 4, "name": "Pull B", "focus": "", "isRest": false,
+      "exercises": [
+        { "id": "single-arm-cable-pulldown", "name": "Single-Arm Cable Pulldown (or Neutral-Grip)", "type": "reps", "sets": 4, "repsMin": 8, "repsMax": 12, "restSec": 90 },
+        { "id": "t-bar-row", "name": "T-Bar Row", "type": "reps", "sets": 3, "repsMin": 8, "repsMax": 10, "restSec": 90 },
+        { "id": "single-arm-dumbbell-row", "name": "Single-Arm Dumbbell Row", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 75, "perSide": true },
+        { "id": "reverse-pec-deck", "name": "Reverse Pec Deck", "type": "reps", "sets": 4, "repsMin": 15, "repsMax": 15, "restSec": 60, "note": "كتف خلفي" },
+        { "id": "incline-dumbbell-curl", "name": "Incline Dumbbell Curl", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 60 },
+        { "id": "hammer-curl", "name": "Hammer Curl", "type": "reps", "sets": 3, "repsMin": 12, "repsMax": 12, "restSec": 60 }
+      ]
+    },
+    {
+      "weekday": "thursday", "index": 5, "name": "Leg + بطن وكور", "focus": "", "isRest": false,
+      "exercises": [
+        { "id": "barbell-squat", "name": "Barbell Squat", "type": "reps", "sets": 4, "repsMin": 8, "repsMax": 10, "restSec": 150, "group": "رجل" },
+        { "id": "romanian-deadlift", "name": "Romanian Deadlift", "type": "reps", "sets": 3, "repsMin": 8, "repsMax": 10, "restSec": 120, "group": "رجل" },
+        { "id": "leg-press", "name": "Leg Press", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 120, "group": "رجل" },
+        { "id": "leg-curl", "name": "Leg Curl", "type": "reps", "sets": 3, "repsMin": 12, "repsMax": 12, "restSec": 75, "group": "رجل" },
+        { "id": "calf-raise", "name": "Calf Raise", "type": "reps", "sets": 4, "repsMin": 12, "repsMax": 15, "restSec": 60, "group": "رجل" },
+        { "id": "hanging-leg-raise", "name": "Hanging Leg Raise", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 12, "restSec": 60, "group": "بطن وكور" },
+        { "id": "cable-crunch", "name": "Cable Crunch", "type": "reps", "sets": 3, "repsMin": 12, "repsMax": 12, "restSec": 60, "group": "بطن وكور", "note": "وزن خفيف" },
+        { "id": "plank", "name": "Plank", "type": "timed", "sets": 3, "durationSec": 45, "restSec": 45, "group": "بطن وكور" },
+        { "id": "ab-wheel", "name": "Ab Wheel", "type": "reps", "sets": 3, "repsMin": 8, "repsMax": 10, "restSec": 60, "group": "بطن وكور" },
+        { "id": "pallof-press", "name": "Pallof Press", "type": "reps", "sets": 3, "repsMin": 10, "repsMax": 10, "restSec": 45, "group": "بطن وكور", "perSide": true }
+      ]
+    },
+    { "weekday": "friday", "index": 6, "name": "راحة", "focus": "", "isRest": true, "exercises": [] }
+  ]
+}

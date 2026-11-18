@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { readJSON, writeJSON } from '../storage/storage.js'
 import { STORAGE_KEYS } from '../storage/keys.js'
-import { createDefaultPlan, normalizePlan } from '../data/defaultPlan.js'
+import { loadPlan, restoreDefaultPlan, savePlan } from '../storage/planStorage.js'
+import { validatePlan } from '../utils/planSchema.js'
 import { getSubscriptionStatus } from '../utils/subscription.js'
 import { createEmptySets } from '../utils/workout.js'
 import { toISODate } from '../utils/date.js'
@@ -16,14 +17,19 @@ function loadProfile() {
   return value && typeof value === 'object' && !Array.isArray(value) ? value : null
 }
 
-function loadPlan() {
-  const value = readJSON(STORAGE_KEYS.plan, null)
-  return value ? normalizePlan(value) : createDefaultPlan()
-}
-
 function loadActiveLogs() {
   const value = readJSON(STORAGE_KEYS.activeLogs, {})
   return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+}
+
+/**
+ * الخطة بتيجي من localStorage (مع migration)، ولو مفيش/تالفة بترجع للـ JSON المضمّن.
+ */
+function createInitialPlanState(initialState) {
+  if (initialState?.plan) {
+    return { plan: initialState.plan, warning: initialState.planWarning ?? null }
+  }
+  return loadPlan()
 }
 
 /**
@@ -31,8 +37,11 @@ function loadActiveLogs() {
  * في الاختبارات نقدر نحقن initialState.
  */
 export function AppProvider({ children, initialState }) {
+  const [initialPlanState] = useState(() => createInitialPlanState(initialState))
+
   const [profile, setProfileState] = useState(() => initialState?.profile ?? loadProfile())
-  const [plan, setPlanState] = useState(() => initialState?.plan ?? loadPlan())
+  const [plan, setPlanState] = useState(initialPlanState.plan)
+  const [planWarning, setPlanWarning] = useState(initialPlanState.warning)
   const [sessions, setSessions] = useState(() =>
     asArray(initialState?.sessions ?? readJSON(STORAGE_KEYS.sessions, [])),
   )
@@ -47,7 +56,8 @@ export function AppProvider({ children, initialState }) {
   }, [profile])
 
   useEffect(() => {
-    writeJSON(STORAGE_KEYS.plan, plan)
+    // savePlan بيتحقق من الشكل قبل ما يكتب — خطة غلط عمرها ما تتخزن
+    savePlan(plan)
   }, [plan])
 
   useEffect(() => {
@@ -107,19 +117,47 @@ export function AppProvider({ children, initialState }) {
   }, [])
 
   // ---------- الخطة ----------
+  const dismissPlanWarning = useCallback(() => setPlanWarning(null), [])
+
   const updatePlan = useCallback((nextPlan) => {
-    setPlanState(normalizePlan(nextPlan))
+    const result = validatePlan(nextPlan)
+    if (!result.valid) {
+      setPlanWarning(result.errors[0] ?? 'الخطة غير صالحة')
+      return false
+    }
+    setPlanState(nextPlan)
+    setPlanWarning(null)
+    return true
   }, [])
 
-  const updateDay = useCallback((dayIndex, dayPatch) => {
-    setPlanState((current) => {
-      const days = current.days.map((day, index) => (index === dayIndex ? { ...day, ...dayPatch } : day))
-      return { ...current, days }
-    })
-  }, [])
+  /** تعديل يوم واحد — بنتحقق من الخطة قبل الحفظ (isRest بتتحسب من عدد التمارين) */
+  const updateDay = useCallback(
+    (dayIndex, dayPatch) => {
+      const days = plan.days.map((day, index) => {
+        if (index !== dayIndex) return day
+        const nextDay = { ...day, ...dayPatch }
+        if (Array.isArray(nextDay.exercises)) nextDay.isRest = nextDay.exercises.length === 0
+        return nextDay
+      })
+      const nextPlan = { ...plan, days }
+      const result = validatePlan(nextPlan)
+      if (!result.valid) {
+        setPlanWarning(result.errors[0] ?? 'الخطة غير صالحة')
+        return false
+      }
+      setPlanState(nextPlan)
+      setPlanWarning(null)
+      return true
+    },
+    [plan],
+  )
 
+  /** استعادة الافتراضي من ملف defaultPlan.json */
   const resetPlan = useCallback(() => {
-    setPlanState(createDefaultPlan())
+    const restored = restoreDefaultPlan()
+    setPlanState(restored)
+    setPlanWarning(null)
+    return restored
   }, [])
 
   // ---------- سجل التمرين الحالي ----------
@@ -221,6 +259,7 @@ export function AppProvider({ children, initialState }) {
       updatePlan,
       updateDay,
       resetPlan,
+      dismissPlanWarning,
       initLog,
       updateSet,
       clearLog,
@@ -234,6 +273,7 @@ export function AppProvider({ children, initialState }) {
       updatePlan,
       updateDay,
       resetPlan,
+      dismissPlanWarning,
       initLog,
       updateSet,
       clearLog,
@@ -243,8 +283,8 @@ export function AppProvider({ children, initialState }) {
   )
 
   const value = useMemo(
-    () => ({ profile, plan, sessions, weightHistory, activeLogs, subscription, actions }),
-    [profile, plan, sessions, weightHistory, activeLogs, subscription, actions],
+    () => ({ profile, plan, planWarning, sessions, weightHistory, activeLogs, subscription, actions }),
+    [profile, plan, planWarning, sessions, weightHistory, activeLogs, subscription, actions],
   )
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>
