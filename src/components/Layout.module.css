@@ -1,0 +1,31 @@
+.shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100%;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding-top: calc(var(--safe-t) + 4px);
+}
+
+.skipLink {
+  position: absolute;
+  right: 12px;
+  top: -60px;
+  z-index: 50;
+  background: var(--primary);
+  color: var(--primary-ink);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-weight: 700;
+  transition: top 0.15s ease;
+}
+
+.skipLink:focus {
+  top: 8px;
+}

@@ -1,0 +1,34 @@
+{
+  "name": "gym-tracker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "متابع الجيم - تطبيق لتتبع خطة التمرين والاشتراك والوزن (React + Vite + PWA)",
+  "homepage": "https://mahmoudnagahmousa.github.io/Gym-Tracker/",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "icons": "node scripts/generate-icons.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/coverage-v8": "^2.1.2",
+    "jsdom": "^25.0.1",
+    "vite": "^5.4.8",
+    "vite-plugin-pwa": "^0.20.5",
+    "vitest": "^2.1.2"
+  }
+}

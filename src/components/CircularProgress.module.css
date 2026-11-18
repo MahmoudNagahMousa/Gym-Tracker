@@ -1,0 +1,66 @@
+.wrap {
+  position: relative;
+  width: min(78vw, 292px);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.track {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.07);
+  stroke-width: 12;
+}
+
+.progress {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 12;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.12s linear, stroke 0.2s ease;
+}
+
+.running .progress {
+  stroke: var(--primary);
+}
+
+.paused .progress {
+  stroke: var(--warning);
+}
+
+.finished .progress {
+  stroke: var(--accent);
+}
+
+.center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.time {
+  font-size: clamp(38px, 15vw, 56px);
+  font-weight: 800;
+  letter-spacing: 1px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+}
+
+.sub {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-dim);
+}
