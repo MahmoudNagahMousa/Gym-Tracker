@@ -40,7 +40,7 @@ describe('ProfilePage', () => {
     expect(screen.getByText('الطول يجب أن يكون بين 100 و 250 سم')).toBeInTheDocument()
   })
 
-  it('saves a valid profile to localStorage and shows BMI', async () => {
+  it('saves a valid profile and appends the weight history (no BMI shown here anymore)', async () => {
     const { user } = renderWithProviders(<ProfilePage />)
 
     await fillValidForm(user)
@@ -59,25 +59,14 @@ describe('ProfilePage', () => {
       durationMonths: 2,
     })
 
-    // الـ BMI محسوب من الفورم: 80 / 1.8^2 = 24.7
-    expect(await screen.findByText('24.7')).toBeInTheDocument()
-    expect(screen.getByText('وزن طبيعي')).toBeInTheDocument()
-
-    // الوزن اتسجل في الهيستوري
+    // الوزن لسه بيتسجل في الهيستوري عشان رسم الرئيسية يتحدّث
     const history = JSON.parse(window.localStorage.getItem(STORAGE_KEYS.weightHistory))
     expect(history).toHaveLength(1)
     expect(history[0].weight).toBe(80)
-  })
 
-  it('shows the subscription end date and remaining days', async () => {
-    const { user } = renderWithProviders(<ProfilePage />)
-
-    await fillValidForm(user)
-    await user.click(screen.getByRole('button', { name: 'حفظ البيانات' }))
-
-    expect(await screen.findByText('تاريخ الانتهاء')).toBeInTheDocument()
-    expect(screen.getByText('بداية الاشتراك')).toBeInTheDocument()
-    expect(screen.getByText('المدة')).toBeInTheDocument()
+    // الـ BMI اتنقل للرئيسية — مش ظاهر هنا
+    expect(screen.queryByText('24.7')).not.toBeInTheDocument()
+    expect(screen.queryByText('وزن طبيعي')).not.toBeInTheDocument()
   })
 
   it('renders a saved profile from storage', async () => {
@@ -97,5 +86,55 @@ describe('ProfilePage', () => {
 
     expect(screen.getByLabelText('الاسم')).toHaveValue('علي')
     expect(screen.getByLabelText('الوزن (كجم)')).toHaveValue(90)
+  })
+
+  it('keeps only the forms: no subscription status, BMI, heatmap or latest-weight cards', () => {
+    window.localStorage.setItem(
+      STORAGE_KEYS.profile,
+      JSON.stringify({
+        name: 'علي',
+        age: 30,
+        weight: 90,
+        height: 175,
+        startDate: '2026-01-01',
+        durationMonths: 1,
+      }),
+    )
+    window.localStorage.setItem(
+      STORAGE_KEYS.weightHistory,
+      JSON.stringify([{ id: 'w1', date: '2026-11-01T10:00:00.000Z', weight: 90 }]),
+    )
+
+    renderWithProviders(<ProfilePage />)
+
+    // مدخلات لسه موجودة
+    expect(screen.getByLabelText('الاسم')).toBeInTheDocument()
+    expect(screen.getByLabelText('تاريخ بداية الاشتراك')).toBeInTheDocument()
+    expect(screen.getByLabelText('مدة الاشتراك (شهور)')).toBeInTheDocument()
+
+    // وحاجات الملخص اتشالت
+    expect(screen.queryByText('تاريخ الانتهاء')).not.toBeInTheDocument()
+    expect(screen.queryByText('بداية الاشتراك')).not.toBeInTheDocument()
+    expect(screen.queryByText('مؤشر كتلة الجسم (BMI)')).not.toBeInTheDocument()
+    expect(screen.queryByText('آخر وزن مسجّل')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('profile-latest-weight')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('consistency-tracker')).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /رسم بياني/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /تم التجديد/ })).not.toBeInTheDocument()
+    expect(screen.queryByTestId('renewal-banner')).not.toBeInTheDocument()
+  })
+
+  it('links back to the Home page for subscription and progress', () => {
+    renderWithProviders(<ProfilePage />)
+
+    expect(
+      screen.getByRole('link', { name: /شوف الاشتراك والتقدم في الرئيسية/ }),
+    ).toHaveAttribute('href', '/')
+  })
+
+  it('still exposes the notification permission section', () => {
+    renderWithProviders(<ProfilePage />)
+
+    expect(screen.getByRole('heading', { name: 'تنبيهات التجديد' })).toBeInTheDocument()
   })
 })

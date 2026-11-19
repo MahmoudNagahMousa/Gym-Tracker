@@ -1,0 +1,146 @@
+/* الرئيسية — كروت الملخص (كل الألوان من متغيرات الثيم في global.css) */
+
+.todayName {
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.todayFocus {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.stateOk {
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.32);
+  color: #86efac;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13.5px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.stateRest {
+  background: var(--bg-elev-2);
+  border: 1px dashed var(--border);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 13.5px;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* -------- الاشتراك -------- */
+.dueBar {
+  background: rgba(250, 204, 21, 0.12);
+  border: 1px solid rgba(250, 204, 21, 0.3);
+  color: #fde68a;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.expiredBar {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.34);
+  color: #fecaca;
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.7;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #0e1728;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+
+/* -------- BMI + آخر وزن (كارتين على صف واحد من 360px) -------- */
+.twoCols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.twoCols > * {
+  min-width: 0;
+}
+
+.smallCard {
+  padding: 12px;
+  gap: 8px;
+}
+
+.compactHead {
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.compactHead h2 {
+  font-size: 13px;
+}
+
+.compactHead span {
+  font-size: 10.5px;
+  padding: 3px 8px;
+}
+
+.bmiRow {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.bmiValue {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  font-variant-numeric: tabular-nums;
+  direction: ltr;
+}
+
+.bmiUnit {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 700;
+}
+
+.diff {
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.diffDown {
+  color: var(--primary);
+}
+
+.diffUp {
+  color: var(--warning);
+}
+
+/* -------- تطور الوزن (empty state) -------- */
+.weightEmpty {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #0e1728;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  text-align: center;
+}

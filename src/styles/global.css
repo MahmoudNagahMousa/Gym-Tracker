@@ -12,6 +12,16 @@
   --warning: #facc15;
   --danger: #ef4444;
   --border: rgba(255, 255, 255, 0.09);
+  /* -------- سجل الالتزام (Consistency heatmap) -------- */
+  --heat-cell: 20px;
+  --heat-gap: 4px;
+  --heat-month-h: 16px;
+  --heat-empty: rgba(255, 255, 255, 0.03);
+  --heat-trained: var(--primary);
+  --heat-rest: rgba(34, 197, 94, 0.26);
+  --heat-missed: rgba(148, 163, 184, 0.34);
+  --heat-today: rgba(255, 255, 255, 0.05);
+  --heat-today-border: rgba(226, 232, 240, 0.35);
   --radius: 16px;
   --radius-sm: 12px;
   --nav-h: 68px;

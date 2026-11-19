@@ -1,10 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import PageHeader from '../components/PageHeader.jsx'
-import WeightChart from '../components/WeightChart.jsx'
 import { useApp } from '../context/AppContext.jsx'
-import { formatDateAr, toISODate } from '../utils/date.js'
-import { getBMI } from '../utils/bmi.js'
-import { getRenewalMessage } from '../utils/subscription.js'
+import { toISODate } from '../utils/date.js'
 import { hasErrors, validateProfile } from '../utils/validation.js'
 import ui from '../styles/ui.module.css'
 import styles from './ProfilePage.module.css'
@@ -32,8 +30,13 @@ function profileToForm(profile) {
   }
 }
 
+/**
+ * بياناتي — المدخلات والتحقق منها بس (الاسم/العمر/الوزن/الطول + بداية الاشتراك
+ * ومدته) + إذن التنبيهات. كل الملخصات (الاشتراك، BMI، آخر وزن، الرسم) اتنقلت
+ * للرئيسية.
+ */
 export default function ProfilePage() {
-  const { profile, subscription, weightHistory, actions } = useApp()
+  const { profile, actions } = useApp()
   const [values, setValues] = useState(() => profileToForm(profile))
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState({ type: '', message: '' })
@@ -47,7 +50,6 @@ export default function ProfilePage() {
     }
   })
 
-  const liveBmi = useMemo(() => getBMI(values.weight, values.height), [values.weight, values.height])
   const errorCount = Object.keys(errors).filter((key) => errors[key]).length
 
   const update = (key, value) => {
@@ -82,29 +84,16 @@ export default function ProfilePage() {
     }
   }
 
-  const statusBadge = subscription.isExpired
-    ? { className: ui.badgeDanger, label: 'منتهي' }
-    : subscription.isDueSoon
-      ? { className: ui.badgeWarn, label: 'قرب يخلص' }
-      : subscription.hasSubscription
-        ? { className: ui.badgeOk, label: 'نشط' }
-        : { className: ui.badgeMuted, label: 'بدون اشتراك' }
-
-  const bmiToneClass =
-    liveBmi?.category.tone === 'ok'
-      ? ui.badgeOk
-      : liveBmi?.category.tone === 'danger'
-        ? ui.badgeDanger
-        : liveBmi
-          ? ui.badgeWarn
-          : ui.badgeMuted
-
   return (
     <div className={ui.page}>
       <PageHeader
         title="بياناتي"
-        subtitle="سجّل بياناتك مرة واحدة، والتطبيق يحسب لك الاشتراك والـ BMI ويحفظ كل حاجة على جهازك."
-      />
+        subtitle="سجّل بياناتك مرة واحدة، والتطبيق يحفظ كل حاجة على جهازك ويعرض الملخص في الرئيسية."
+      >
+        <Link className={ui.linkBtn} to="/">
+          شوف الاشتراك والتقدم في الرئيسية ←
+        </Link>
+      </PageHeader>
 
       {/* ---------- البيانات الأساسية ---------- */}
       <section className={ui.card} aria-labelledby="profile-form-title">
@@ -112,7 +101,6 @@ export default function ProfilePage() {
           <h2 className={ui.cardTitle} id="profile-form-title">
             البيانات الأساسية
           </h2>
-          <span className={[ui.badge, statusBadge.className].join(' ')}>{statusBadge.label}</span>
         </div>
 
         <form className={ui.form} onSubmit={handleSubmit} noValidate>
@@ -276,100 +264,10 @@ export default function ProfilePage() {
             </p>
           ) : null}
         </form>
-      </section>
 
-      {/* ---------- حالة الاشتراك ---------- */}
-      <section className={ui.card} aria-labelledby="subscription-title">
-        <div className={ui.cardHead}>
-          <h2 className={ui.cardTitle} id="subscription-title">
-            الاشتراك
-          </h2>
-          <span className={[ui.badge, statusBadge.className].join(' ')}>{statusBadge.label}</span>
-        </div>
-
-        {subscription.hasSubscription ? (
-          <>
-            <div className={ui.statGrid}>
-              <div className={ui.stat}>
-                <span className={ui.statValue}>{formatDateAr(subscription.startDate)}</span>
-                <span className={ui.statLabel}>بداية الاشتراك</span>
-              </div>
-              <div className={ui.stat}>
-                <span className={ui.statValue}>{formatDateAr(subscription.endDate)}</span>
-                <span className={ui.statLabel}>تاريخ الانتهاء</span>
-              </div>
-              <div className={ui.stat}>
-                <span className={ui.statValue}>{subscription.months} شهر</span>
-                <span className={ui.statLabel}>المدة</span>
-              </div>
-              <div className={ui.stat}>
-                <span className={ui.statValue}>
-                  {subscription.isExpired ? `متأخر ${Math.abs(subscription.daysRemaining)} يوم` : `${subscription.daysRemaining} يوم`}
-                </span>
-                <span className={ui.statLabel}>{subscription.isExpired ? 'منتهي' : 'باقي'}</span>
-              </div>
-            </div>
-
-            {subscription.isDueSoon || subscription.isExpired ? (
-              <p className={styles.hintBar}>{getRenewalMessage(subscription)}</p>
-            ) : (
-              <p className={ui.footnote}>كل حاجة تمام — الاشتراك شغال.</p>
-            )}
-
-            <button type="button" className={[ui.btn, ui.btnPrimary, ui.btnBlock].join(' ')} onClick={actions.renewSubscription}>
-              تم التجديد — ابدأ من النهارده
-            </button>
-          </>
-        ) : (
-          <p className={ui.empty}>املا بياناتك فوق واضغط «حفظ البيانات» عشان نحسب لك ميعاد انتهاء الاشتراك.</p>
-        )}
-      </section>
-
-      {/* ---------- BMI ---------- */}
-      <section className={ui.card} aria-labelledby="bmi-title">
-        <div className={ui.cardHead}>
-          <h2 className={ui.cardTitle} id="bmi-title">
-            مؤشر كتلة الجسم (BMI)
-          </h2>
-          <span className={[ui.badge, bmiToneClass].join(' ')}>
-            {liveBmi ? liveBmi.category.label : 'لسه مش متحسب'}
-          </span>
-        </div>
-
-        <div className={styles.bmiRow}>
-          <div>
-            <span className={styles.bmiValue}>{liveBmi ? liveBmi.value : '—'}</span>
-            <span className={styles.bmiUnit}>kg/m²</span>
-          </div>
-          <p className={ui.footnote} style={{ maxWidth: 260 }}>
-            المدى الصحي: 18.5 – 24.9. المؤشر بيستخدم الوزن والطول اللي في الفورم فوق (مش محتاج تحفظ).
-          </p>
-        </div>
-      </section>
-
-      {/* ---------- الوزن ---------- */}
-      <section className={ui.card} aria-labelledby="weight-title">
-        <div className={ui.cardHead}>
-          <h2 className={ui.cardTitle} id="weight-title">
-            تطور الوزن
-          </h2>
-          <span className={[ui.badge, ui.badgeMuted].join(' ')}>{weightHistory.length} تسجيل</span>
-        </div>
-        <WeightChart entries={weightHistory} />
-        {weightHistory.length ? (
-          <ul>
-            {[...weightHistory]
-              .slice(-3)
-              .reverse()
-              .map((entry) => (
-                <li key={entry.id} className={styles.listItem}>
-                  <span className="numeric">{entry.weight} كجم</span>
-                  <span className={ui.muted}>{toISODate(new Date(entry.date))}</span>
-                </li>
-              ))}
-          </ul>
-        ) : null}
-        <p className={ui.footnote}>كل مرة تحفظ فيها وزن جديد بيتسجل تلقائياً بتاريخ النهارده.</p>
+        <p className={ui.footnote}>
+          كل مرة تحفظ فيها وزن جديد بيتسجل تلقائياً بتاريخ النهارده — التقدم بيتابع في الرئيسية.
+        </p>
       </section>
 
       {/* ---------- التنبيهات ---------- */}
@@ -384,7 +282,7 @@ export default function ProfilePage() {
         </div>
         <p className={ui.footnote}>
           التنبيه بيظهر مرة عند فتح التطبيق لو باقي 5 أيام أو أقل. مفيش سيرفر، فالتنبيه «أفضل جهد» بس — لو
-          المتصفح قافل الإشعارات مش هيشتغل، لكن البانر الأحمر/الأصفر فوق بيفضل ظاهر.
+          المتصفح قافل الإشعارات مش هيشتغل، لكن بانر التجديد في الرئيسية بيفضل ظاهر.
         </p>
         <button
           type="button"
